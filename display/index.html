@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>晚会显示端</title>
+    <!-- APlayer -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script>
+    <!-- Lyric -->
+    <script src="https://cdn.jsdelivr.net/npm/aplayer-plugin-lyric/dist/APlayer.Lyric.min.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #000;
+            color: white;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        #app {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* 幻灯片模式 */
+        .slide-container {
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+        
+        .slide-container.active {
+            display: block;
+        }
+        
+        .slide-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        /* 音乐模式 */
+        .music-container {
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .music-container.active {
+            display: flex;
+        }
+        
+        .background-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-size: cover;
+            background-position: center;
+            filter: blur(20px) brightness(0.3);
+            opacity: 0.6;
+            z-index: 0;
+        }
+        
+        .content {
+            position: relative;
+            z-index: 1;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 36px;
+            font-weight: 300;
+            margin-bottom: 10px;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .header p {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .music-content {
+            display: flex;
+            flex: 1;
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        @media (max-width: 768px) {
+            .music-content {
+                flex-direction: column;
+            }
+        }
+        
+        .album-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .album-cover {
+            width: 300px;
+            height: 300px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .album-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.8s ease;
+        }
+        
+        .album-cover.playing img {
+            animation: rotate 20s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .album-info {
+            text-align: center;
+        }
+        
+        .album-title {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: white;
+        }
+        
+        .album-artist {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 20px;
+        }
+        
+        .lyrics-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .lyrics-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .lyrics-container {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+        }
+        
+        #lyric {
+            height: 100%;
+        }
+        
+        .aplayer {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            margin: 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .aplayer .aplayer-info {
+            padding: 15px 20px;
+            border: none;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .aplayer .aplayer-lrc {
+            background: transparent;
+            height: 100% !important;
+        }
+        
+        .aplayer .aplayer-lrc-contents {
+            text-align: center;
+        }
+        
+        .aplayer .aplayer-lrc p {
+            font-size: 18px !important;
+            color: rgba(255, 255, 255, 0.7) !important;
+            height: 36px !important;
+            line-height: 36px !important;
+        }
+        
+        .aplayer .aplayer-lrc p.aplayer-lrc-current {
+            color: white !important;
+            font-size: 22px !important;
+            font-weight: 500;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+            z-index: 1;
+            position: relative;
+        }
+        
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            margin-top: 10px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #dc3545;
+        }
+        
+        .status-dot.connected {
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        /* 等待状态 */
+        .waiting-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .waiting-icon {
+            font-size: 80px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-bottom: 30px;
+        }
+        
+        .waiting-title {
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .waiting-subtitle {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.5);
+            max-width: 600px;
+            line-height: 1.6;
+        }
+        
+        .fullscreen-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .fullscreen-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+        
+        /* 隐藏的APlayer容器 */
+        #aplayer {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 等待状态 -->
+        <div class="waiting-state" id="waitingState">
+            <div class="waiting-icon">
+                <i class="fas fa-music"></i>
+            </div>
+            <h1 class="waiting-title">晚会显示端</h1>
+            <p class="waiting-subtitle">
+                正在等待控制端发送内容...<br>
+                请确保已连接到服务器，控制端将控制此处的显示内容。
+            </p>
+            <div class="connection-status">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">连接中...</span>
+            </div>
+        </div>
+        
+        <!-- 幻灯片模式 -->
+        <div class="slide-container" id="slideContainer">
+            <iframe class="slide-frame" id="slideFrame" sandbox="allow-scripts allow-same-origin"></iframe>
+        </div>
+        
+        <!-- 音乐模式 -->
+        <div class="music-container" id="musicContainer">
+            <div class="background-overlay" id="backgroundOverlay"></div>
+            <div class="content">
+                <div class="header">
+                    <h1>元旦晚会音乐播放</h1>
+                    <p>班级元旦晚会 · 音乐欣赏</p>
+                </div>
+                
+                <div class="music-content">
+                    <div class="album-section">
+                        <div class="album-cover" id="albumCover">
+                            <img id="coverImage" src="/uploads/covers/default-cover.jpg" alt="专辑封面">
+                        </div>
+                        <div class="album-info">
+                            <h2 class="album-title" id="trackTitle">等待音乐</h2>
+                            <p class="album-artist" id="trackArtist">未知艺术家</p>
+                        </div>
+                    </div>
+                    
+                    <div class="lyrics-section">
+                        <h3 class="lyrics-title">
+                            <i class="fas fa-align-left"></i> 歌词
+                        </h3>
+                        <div class="lyrics-container">
+                            <div id="lyric"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <p>班级元旦晚会远程控制系统 · 显示端</p>
+                <div class="connection-status">
+                    <div class="status-dot" id="musicStatusDot"></div>
+                    <span id="musicStatusText">连接中...</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 全屏按钮 -->
+        <button class="fullscreen-btn" id="fullscreenBtn" title="切换全屏">
+            <i class="fas fa-expand"></i>
+        </button>
+    </div>
+    
+    <!-- APlayer 实例容器 -->
+    <div id="aplayer" style="display: none;"></div>
+    
+    <script src="display.js"></script>
+</body>
+</html>
