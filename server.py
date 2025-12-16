@@ -43,7 +43,6 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.mount("/admin", StaticFiles(directory="admin"), name="admin")
 app.mount("/display", StaticFiles(directory="display"), name="display")
-
 # 数据模型
 class Track(BaseModel):
     id: str

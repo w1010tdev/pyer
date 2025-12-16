@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS测试页面</title>
+    <style>
+        /* 基础样式，仅为页面美观，核心是JS功能 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            background-color: #f5f5f5;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .test-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .test-section h2 {
+            color: #e74c3c;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px 0;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        .result-box {
+            margin-top: 10px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 3px solid #3498db;
+            min-height: 50px;
+        }
+
+        input {
+            padding: 8px;
+            margin: 5px 0;
+            width: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>JavaScript测试页面</h1>
+
+    <!-- 测试1：DOM操作 -->
+    <div class="test-section">
+        <h2>1. DOM操作（修改文本/样式）</h2>
+        <button onclick="changeDomText()">修改下方文本</button>
+        <button onclick="changeDomStyle()">修改下方样式</button>
+        <div id="dom-demo" class="result-box">这是初始的DOM内容</div>
+    </div>
+
+    <!-- 测试2：事件处理与输入交互 -->
+    <div class="test-section">
+        <h2>2. 输入交互与事件</h2>
+        <input type="text" id="input-demo" placeholder="输入一些内容...">
+        <button onclick="getInputValue()">获取输入内容</button>
+        <div id="input-result" class="result-box">等待输入...</div>
+    </div>
+
+    <!-- 测试3：定时器（倒计时） -->
+    <div class="test-section">
+        <h2>3. 定时器（倒计时）</h2>
+        <button onclick="startCountdown()">开始10秒倒计时</button>
+        <button onclick="stopCountdown()">停止倒计时</button>
+        <div id="countdown-result" class="result-box">倒计时未开始</div>
+    </div>
+
+    <!-- 测试4：本地存储（localStorage） -->
+    <div class="test-section">
+        <h2>4. 本地存储（localStorage）</h2>
+        <button onclick="saveToLocalStorage()">保存数据到本地</button>
+        <button onclick="getFromLocalStorage()">读取本地数据</button>
+        <button onclick="clearLocalStorage()">清空本地数据</button>
+        <div id="storage-result" class="result-box">本地存储为空</div>
+    </div>
+
+    <!-- 测试5：数组/数据处理 -->
+    <div class="test-section">
+        <h2>5. 数组与数据处理</h2>
+        <button onclick="processArray()">处理测试数组</button>
+        <div id="array-result" class="result-box">点击按钮查看数组处理结果</div>
+    </div>
+
+    <script>
+        // 1. DOM操作函数
+        function changeDomText() {
+            const domDemo = document.getElementById('dom-demo');
+            domDemo.textContent = `文本已修改（时间：${new Date().toLocaleTimeString()}）`;
+        }
+
+        function changeDomStyle() {
+            const domDemo = document.getElementById('dom-demo');
+            // 随机颜色
+            const randomColor = `rgb(${Math.floor(Math.random()*256)}, ${Math.floor(Math.random()*256)}, ${Math.floor(Math.random()*256)})`;
+            domDemo.style.background = randomColor;
+            domDemo.style.color = 'white';
+            domDemo.style.borderLeftColor = '#e74c3c';
+        }
+
+        // 2. 输入交互函数
+        function getInputValue() {
+            const inputVal = document.getElementById('input-demo').value;
+            const resultBox = document.getElementById('input-result');
+            if (inputVal) {
+                resultBox.textContent = `你输入的内容是：${inputVal}`;
+            } else {
+                resultBox.textContent = '请输入内容后再点击！';
+                resultBox.style.borderLeftColor = '#e74c3c';
+                // 2秒后恢复样式
+                setTimeout(() => {
+                    resultBox.style.borderLeftColor = '#3498db';
+                }, 2000);
+            }
+        }
+
+        // 3. 倒计时函数
+        let countdownTimer = null; // 保存定时器ID
+        function startCountdown() {
+            let count = 10;
+            const resultBox = document.getElementById('countdown-result');
+            // 先清除之前的定时器，避免多个定时器同时运行
+            clearInterval(countdownTimer);
+            countdownTimer = setInterval(() => {
+                if (count >= 0) {
+                    resultBox.textContent = `倒计时：${count}秒`;
+                    count--;
+                } else {
+                    clearInterval(countdownTimer);
+                    resultBox.textContent = '倒计时结束！';
+                }
+            }, 1000);
+        }
+
+        function stopCountdown() {
+            clearInterval(countdownTimer);
+            const resultBox = document.getElementById('countdown-result');
+            resultBox.textContent = '倒计时已停止';
+        }
+
+        // 4. 本地存储函数
+        function saveToLocalStorage() {
+            const testData = {
+                name: 'JS测试数据',
+                time: new Date().toLocaleString(),
+                value: Math.random().toFixed(2)
+            };
+            localStorage.setItem('testData', JSON.stringify(testData));
+            document.getElementById('storage-result').textContent = '数据已保存到localStorage！';
+        }
+
+        function getFromLocalStorage() {
+            const data = localStorage.getItem('testData');
+            const resultBox = document.getElementById('storage-result');
+            if (data) {
+                resultBox.textContent = `本地存储的数据：${data}`;
+            } else {
+                resultBox.textContent = 'localStorage中没有测试数据！';
+            }
+        }
+
+        function clearLocalStorage() {
+            localStorage.removeItem('testData');
+            document.getElementById('storage-result').textContent = 'localStorage中的测试数据已清空！';
+        }
+
+        // 5. 数组处理函数
+        function processArray() {
+            const testArray = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+            // 过滤偶数 + 乘以2
+            const processedArray = testArray.filter(num => num % 2 === 0).map(num => num * 2);
+            document.getElementById('array-result').textContent = `原数组：${testArray.join(', ')}\n处理后（偶数×2）：${processedArray.join(', ')}`;
+            // 处理换行显示
+            document.getElementById('array-result').style.whiteSpace = 'pre-line';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS测试页面</title>
+    <style>
+        /* 全局样式重置与基础设置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        /* 标题样式 */
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 测试容器样式 */
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        /* 单个测试卡片样式 */
+        .test-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        /* 卡片hover效果 */
+        .test-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .test-card h2 {
+            color: #3498db;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        /* 测试内容样式 */
+        .css-demo-box {
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(45deg, #3498db, #9b59b6);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        /* 列表样式测试 */
+        .test-list {
+            list-style: none;
+            margin: 10px 0;
+        }
+
+        .test-list li {
+            padding: 8px;
+            border-left: 3px solid #2ecc71;
+            margin: 5px 0;
+            background: #f8f9fa;
+        }
+
+        /* 按钮样式测试 */
+        .test-btn {
+            padding: 10px 20px;
+            background: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .test-btn:hover {
+            background: #27ae60;
+        }
+
+        /* 响应式测试：小屏幕下调整布局 */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .test-card {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>CSS测试页面</h1>
+
+    <div class="test-container">
+        <!-- 样式1：渐变背景与布局 -->
+        <div class="test-card">
+            <h2>渐变背景 & 弹性布局</h2>
+            <div class="css-demo-box">CSS Gradient + Flexbox</div>
+            <p>这个盒子使用了线性渐变背景，并且通过Flexbox实现了内容居中。</p>
+        </div>
+
+        <!-- 样式2：列表样式 -->
+        <div class="test-card">
+            <h2>自定义列表样式</h2>
+            <ul class="test-list">
+                <li>列表项1 - CSS样式定制</li>
+                <li>列表项2 - 左侧边框标记</li>
+                <li>列表项3 - 背景色与内边距</li>
+            </ul>
+        </div>
+
+        <!-- 样式3：按钮样式与交互 -->
+        <div class="test-card">
+            <h2>按钮样式 & hover效果</h2>
+            <button class="test-btn">测试按钮</button>
+            <p>按钮拥有hover颜色变化的过渡效果，无边框且有圆角。</p>
+        </div>
+
+        <!-- 样式4：响应式布局测试 -->
+        <div class="test-card">
+            <h2>响应式布局测试</h2>
+            <p>缩小浏览器窗口，页面会根据屏幕宽度自适应调整（网格布局+媒体查询）。</p>
+            <p>当前屏幕宽度：<span id="screen-width">0</span>px</p>
+        </div>
+    </div>
+
+    <script>
+        // 简单的JS辅助显示屏幕宽度（仅为了CSS响应式测试更直观，核心还是CSS）
+        function updateScreenWidth() {
+            document.getElementById('screen-width').textContent = window.innerWidth;
+        }
+        window.addEventListener('resize', updateScreenWidth);
+        updateScreenWidth();
+    </script>
+</body>
+</html>

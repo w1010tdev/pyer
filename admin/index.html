@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>晚会控制中心 - 管理端</title>
     <!-- Vue 3 -->
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <!-- Element Plus -->
     <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
     <script src="https://unpkg.com/element-plus"></script>
@@ -17,19 +18,19 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-        
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
         }
-        
+
         .header {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 16px;
@@ -40,7 +41,7 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .title-section h1 {
             color: #2c3e50;
             font-size: 28px;
@@ -49,16 +50,16 @@
             align-items: center;
             gap: 12px;
         }
-        
+
         .title-section h1 i {
             color: #667eea;
         }
-        
+
         .title-section p {
             color: #7f8c8d;
             font-size: 16px;
         }
-        
+
         .status-indicator {
             display: flex;
             align-items: center;
@@ -68,37 +69,45 @@
             border-radius: 12px;
             border: 1px solid #e9ecef;
         }
-        
+
         .status-dot {
             width: 12px;
             height: 12px;
             border-radius: 50%;
             background: #dc3545;
         }
-        
+
         .status-dot.connected {
             background: #28a745;
             animation: pulse 2s infinite;
         }
-        
+
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
         }
-        
+
         .main-content {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 24px;
         }
-        
+
         @media (max-width: 1200px) {
             .main-content {
                 grid-template-columns: 1fr;
             }
         }
-        
+
         .card {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 16px;
@@ -106,7 +115,7 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             height: 100%;
         }
-        
+
         .card-header {
             display: flex;
             justify-content: space-between;
@@ -115,7 +124,7 @@
             padding-bottom: 16px;
             border-bottom: 2px solid #f1f3f5;
         }
-        
+
         .card-header h2 {
             color: #2c3e50;
             font-size: 20px;
@@ -123,18 +132,18 @@
             align-items: center;
             gap: 10px;
         }
-        
+
         .card-header h2 i {
             color: #667eea;
         }
-        
+
         .mode-toggle {
             display: flex;
             background: #f1f3f5;
             border-radius: 12px;
             padding: 4px;
         }
-        
+
         .mode-btn {
             padding: 10px 24px;
             border: none;
@@ -147,20 +156,20 @@
             align-items: center;
             gap: 8px;
         }
-        
+
         .mode-btn.active {
             background: white;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             color: #667eea;
         }
-        
+
         .player-controls {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 16px;
             margin-bottom: 24px;
         }
-        
+
         .control-btn {
             padding: 16px;
             border: none;
@@ -176,22 +185,22 @@
             gap: 10px;
             transition: all 0.3s;
         }
-        
+
         .control-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
         }
-        
+
         .control-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
         }
-        
+
         .progress-section {
             margin-bottom: 24px;
         }
-        
+
         .time-display {
             display: flex;
             justify-content: space-between;
@@ -199,7 +208,7 @@
             color: #7f8c8d;
             font-size: 14px;
         }
-        
+
         .progress-bar {
             height: 8px;
             background: #e9ecef;
@@ -207,7 +216,7 @@
             overflow: hidden;
             cursor: pointer;
         }
-        
+
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
@@ -215,25 +224,25 @@
             border-radius: 4px;
             transition: width 0.1s;
         }
-        
+
         .volume-control {
             display: flex;
             align-items: center;
             gap: 12px;
         }
-        
+
         .volume-control i {
             color: #667eea;
             font-size: 20px;
         }
-        
+
         .list-container {
             max-height: 400px;
             overflow-y: auto;
             border-radius: 12px;
             border: 1px solid #e9ecef;
         }
-        
+
         .list-item {
             padding: 16px;
             border-bottom: 1px solid #e9ecef;
@@ -242,50 +251,50 @@
             justify-content: space-between;
             transition: background 0.3s;
         }
-        
+
         .list-item:hover {
             background: #f8f9fa;
         }
-        
+
         .list-item.active {
             background: linear-gradient(90deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
             border-left: 4px solid #667eea;
         }
-        
+
         .item-info {
             display: flex;
             align-items: center;
             gap: 16px;
             flex: 1;
         }
-        
+
         .item-cover {
             width: 50px;
             height: 50px;
             border-radius: 8px;
             object-fit: cover;
         }
-        
+
         .item-text {
             flex: 1;
         }
-        
+
         .item-title {
             font-weight: 500;
             color: #2c3e50;
             margin-bottom: 4px;
         }
-        
+
         .item-subtitle {
             font-size: 14px;
             color: #7f8c8d;
         }
-        
+
         .item-actions {
             display: flex;
             gap: 8px;
         }
-        
+
         .action-btn {
             width: 36px;
             height: 36px;
@@ -299,32 +308,32 @@
             justify-content: center;
             transition: all 0.3s;
         }
-        
+
         .action-btn:hover {
             background: #e9ecef;
             color: #495057;
         }
-        
+
         .action-btn.delete:hover {
             background: #fee;
             color: #dc3545;
         }
-        
+
         .action-btn.play:hover {
             background: #e7f4ff;
             color: #007bff;
         }
-        
+
         .upload-section {
             margin-top: 24px;
         }
-        
+
         .upload-tabs {
             display: flex;
             border-bottom: 2px solid #f1f3f5;
             margin-bottom: 24px;
         }
-        
+
         .upload-tab {
             padding: 12px 24px;
             border: none;
@@ -334,11 +343,11 @@
             color: #7f8c8d;
             position: relative;
         }
-        
+
         .upload-tab.active {
             color: #667eea;
         }
-        
+
         .upload-tab.active::after {
             content: '';
             position: absolute;
@@ -348,19 +357,19 @@
             height: 2px;
             background: #667eea;
         }
-        
+
         .upload-form {
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
-        
+
         .form-group {
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
-        
+
         .form-group label {
             font-weight: 500;
             color: #2c3e50;
@@ -368,7 +377,7 @@
             align-items: center;
             gap: 8px;
         }
-        
+
         .form-group input {
             padding: 12px 16px;
             border: 1px solid #e9ecef;
@@ -376,17 +385,17 @@
             font-size: 16px;
             transition: border 0.3s;
         }
-        
+
         .form-group input:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-        
+
         .file-input-wrapper {
             position: relative;
         }
-        
+
         .file-input {
             opacity: 0;
             position: absolute;
@@ -394,7 +403,7 @@
             height: 100%;
             cursor: pointer;
         }
-        
+
         .file-label {
             display: flex;
             flex-direction: column;
@@ -407,23 +416,23 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        
+
         .file-label:hover {
             border-color: #667eea;
             color: #667eea;
         }
-        
+
         .file-label i {
             font-size: 48px;
             margin-bottom: 16px;
         }
-        
+
         .file-name {
             margin-top: 8px;
             font-size: 14px;
             color: #28a745;
         }
-        
+
         .upload-btn {
             padding: 16px;
             border: none;
@@ -440,39 +449,39 @@
             transition: all 0.3s;
             margin-top: 10px;
         }
-        
+
         .upload-btn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
         }
-        
+
         .upload-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
         }
-        
+
         .empty-state {
             text-align: center;
             padding: 60px 20px;
             color: #6c757d;
         }
-        
+
         .empty-state i {
             font-size: 64px;
             margin-bottom: 20px;
             opacity: 0.3;
         }
-        
+
         .empty-state h3 {
             font-size: 20px;
             margin-bottom: 12px;
             color: #495057;
         }
-        
+
         .empty-state p {
             font-size: 16px;
         }
-        
+
         .slide-preview {
             width: 100%;
             height: 200px;
@@ -481,20 +490,20 @@
             overflow: hidden;
             margin-bottom: 16px;
         }
-        
+
         .slide-preview iframe {
             width: 100%;
             height: 100%;
             border: none;
         }
-        
+
         .current-display {
             background: #f8f9fa;
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 24px;
         }
-        
+
         .current-display h3 {
             color: #2c3e50;
             margin-bottom: 12px;
@@ -502,36 +511,36 @@
             align-items: center;
             gap: 8px;
         }
-        
+
         .current-info {
             display: flex;
             align-items: center;
             gap: 16px;
         }
-        
+
         .current-cover {
             width: 80px;
             height: 80px;
             border-radius: 8px;
             object-fit: cover;
         }
-        
+
         .current-text {
             flex: 1;
         }
-        
+
         .current-title {
             font-size: 18px;
             font-weight: 500;
             color: #2c3e50;
             margin-bottom: 4px;
         }
-        
+
         .current-subtitle {
             font-size: 14px;
             color: #7f8c8d;
         }
-        
+
         .display-url {
             background: white;
             border: 1px solid #e9ecef;
@@ -542,7 +551,7 @@
             margin-top: 20px;
             word-break: break-all;
         }
-        
+
         .footer {
             text-align: center;
             color: white;
@@ -550,18 +559,19 @@
             padding: 20px;
             opacity: 0.8;
         }
-        
+
         .footer a {
             color: white;
             text-decoration: none;
             font-weight: 500;
         }
-        
+
         .footer a:hover {
             text-decoration: underline;
         }
     </style>
 </head>
+
 <body>
     <div id="app">
         <div class="container">
@@ -576,7 +586,7 @@
                     <span>{{ connectionStatus }}</span>
                 </div>
             </div>
-            
+
             <!-- 主要内容 -->
             <div class="main-content">
                 <!-- 左侧：控制面板 -->
@@ -584,23 +594,17 @@
                     <div class="card-header">
                         <h2><i class="fas fa-gamepad"></i> 控制面板</h2>
                         <div class="mode-toggle">
-                            <button 
-                                class="mode-btn" 
-                                :class="{active: currentMode === 'music'}"
-                                @click="switchMode('music')"
-                            >
+                            <button class="mode-btn" :class="{active: currentMode === 'music'}"
+                                @click="switchMode('music')">
                                 <i class="fas fa-music"></i> 音乐模式
                             </button>
-                            <button 
-                                class="mode-btn"
-                                :class="{active: currentMode === 'slide'}"
-                                @click="switchMode('slide')"
-                            >
+                            <button class="mode-btn" :class="{active: currentMode === 'slide'}"
+                                @click="switchMode('slide')">
                                 <i class="fas fa-tv"></i> 幻灯片模式
                             </button>
                         </div>
                     </div>
-                    
+
                     <!-- 当前显示 -->
                     <div class="current-display">
                         <h3><i class="fas fa-eye"></i> 当前显示</h3>
@@ -634,12 +638,12 @@
                                 <div class="current-subtitle">请上传音乐或幻灯片</div>
                             </div>
                         </div>
-                        
+
                         <div class="display-url">
                             显示端地址: <a :href="displayUrl" target="_blank">{{ displayUrl }}</a>
                         </div>
                     </div>
-                    
+
                     <!-- 音乐控制 -->
                     <div v-if="currentMode === 'music'">
                         <div class="player-controls">
@@ -656,7 +660,7 @@
                                 <i class="fas fa-step-forward"></i> 下一首
                             </button>
                         </div>
-                        
+
                         <div class="progress-section">
                             <div class="time-display">
                                 <span>{{ formatTime(currentTime) }}</span>
@@ -666,79 +670,61 @@
                                 <div class="progress-fill" :style="{width: progressPercent + '%'}"></div>
                             </div>
                         </div>
-                        
+
                         <div class="volume-control">
                             <i class="fas fa-volume-up"></i>
-                            <input 
-                                type="range" 
-                                min="0" 
-                                max="100" 
-                                v-model="volume" 
-                                @input="setVolume"
-                                style="flex: 1;"
-                            >
+                            <input type="range" min="0" max="100" v-model="volume" @input="setVolume" style="flex: 1;">
                             <span>{{ volume }}%</span>
                         </div>
                     </div>
-                    
+
                     <!-- 幻灯片控制 -->
                     <div v-else>
                         <div class="player-controls">
                             <button class="control-btn" @click="prevSlide" :disabled="!currentSlide">
                                 <i class="fas fa-chevron-left"></i> 上一页
                             </button>
-                            <button class="control-btn" @click="selectSlide(currentSlideIndex)" :disabled="!currentSlide">
+                            <button class="control-btn" @click="selectSlide(currentSlideIndex)"
+                                :disabled="!currentSlide">
                                 <i class="fas fa-sync-alt"></i> 刷新
                             </button>
                             <button class="control-btn" @click="nextSlide" :disabled="!currentSlide">
                                 <i class="fas fa-chevron-right"></i> 下一页
                             </button>
                         </div>
-                        
+
                         <div v-if="currentSlide" class="slide-preview">
                             <iframe :src="currentSlide.url" frameborder="0"></iframe>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- 右侧：内容管理 -->
                 <div class="card">
                     <div class="card-header">
                         <h2><i class="fas fa-folder-open"></i> 内容管理</h2>
                     </div>
-                    
+
                     <!-- 上传标签页 -->
                     <div class="upload-section">
                         <div class="upload-tabs">
-                            <button 
-                                class="upload-tab" 
-                                :class="{active: uploadTab === 'music'}"
-                                @click="uploadTab = 'music'"
-                            >
+                            <button class="upload-tab" :class="{active: uploadTab === 'music'}"
+                                @click="uploadTab = 'music'">
                                 <i class="fas fa-music"></i> 上传音乐
                             </button>
-                            <button 
-                                class="upload-tab"
-                                :class="{active: uploadTab === 'slide'}"
-                                @click="uploadTab = 'slide'"
-                            >
+                            <button class="upload-tab" :class="{active: uploadTab === 'slide'}"
+                                @click="uploadTab = 'slide'">
                                 <i class="fas fa-file-code"></i> 上传幻灯片
                             </button>
                         </div>
-                        
+
                         <!-- 音乐上传表单 -->
                         <div v-if="uploadTab === 'music'" class="upload-form">
                             <div class="form-group">
                                 <label for="music-file"><i class="fas fa-file-audio"></i> 音乐文件 *</label>
                                 <div class="file-input-wrapper">
-                                    <input 
-                                        type="file" 
-                                        id="music-file" 
-                                        @change="handleMusicFileChange"
-                                        accept="audio/*"
-                                        class="file-input"
-                                        ref="musicFileInput"
-                                    >
+                                    <input type="file" id="music-file" @change="handleMusicFileChange" accept="audio/*"
+                                        class="file-input">
                                     <label for="music-file" class="file-label">
                                         <i class="fas fa-cloud-upload-alt"></i>
                                         <span>点击选择音乐文件</span>
@@ -746,18 +732,12 @@
                                     </label>
                                 </div>
                             </div>
-                            
+
                             <div class="form-group">
                                 <label for="cover-file"><i class="fas fa-image"></i> 封面图片 (可选)</label>
                                 <div class="file-input-wrapper">
-                                    <input 
-                                        type="file" 
-                                        id="cover-file" 
-                                        @change="handleCoverFileChange"
-                                        accept="image/*"
-                                        class="file-input"
-                                        ref="coverFileInput"
-                                    >
+                                    <input type="file" id="cover-file" @change="handleCoverFileChange" accept="image/*"
+                                        class="file-input">
                                     <label for="cover-file" class="file-label">
                                         <i class="fas fa-cloud-upload-alt"></i>
                                         <span>点击选择封面图片</span>
@@ -765,18 +745,12 @@
                                     </label>
                                 </div>
                             </div>
-                            
+
                             <div class="form-group">
                                 <label for="lyrics-file"><i class="fas fa-file-alt"></i> 歌词文件 (可选)</label>
                                 <div class="file-input-wrapper">
-                                    <input 
-                                        type="file" 
-                                        id="lyrics-file" 
-                                        @change="handleLyricsFileChange"
-                                        accept=".lrc,.txt,.ass,.srt"
-                                        class="file-input"
-                                        ref="lyricsFileInput"
-                                    >
+                                    <input type="file" id="lyrics-file" @change="handleLyricsFileChange"
+                                        accept=".lrc,.txt,.ass,.srt" class="file-input">
                                     <label for="lyrics-file" class="file-label">
                                         <i class="fas fa-cloud-upload-alt"></i>
                                         <span>点击选择歌词文件</span>
@@ -784,51 +758,31 @@
                                     </label>
                                 </div>
                             </div>
-                            
+
                             <div class="form-group">
                                 <label for="title"><i class="fas fa-heading"></i> 歌曲标题</label>
-                                <input 
-                                    type="text" 
-                                    id="title" 
-                                    v-model="musicTitle"
-                                    placeholder="自动从文件名获取"
-                                >
+                                <input type="text" id="title" v-model="musicTitle" placeholder="自动从文件名获取">
                             </div>
-                            
+
                             <div class="form-group">
                                 <label for="artist"><i class="fas fa-user"></i> 艺术家</label>
-                                <input 
-                                    type="text" 
-                                    id="artist" 
-                                    v-model="musicArtist"
-                                    placeholder="未知艺术家"
-                                >
+                                <input type="text" id="artist" v-model="musicArtist" placeholder="未知艺术家">
                             </div>
-                            
-                            <button 
-                                class="upload-btn" 
-                                @click="uploadMusic"
-                                :disabled="!musicFile || isUploading"
-                            >
+
+                            <button class="upload-btn" @click="uploadMusic" :disabled="!musicFile || isUploading">
                                 <i class="fas fa-upload" v-if="!isUploading"></i>
                                 <i class="fas fa-spinner fa-spin" v-else></i>
                                 {{ isUploading ? '上传中...' : '上传音乐' }}
                             </button>
                         </div>
-                        
+
                         <!-- 幻灯片上传表单 -->
                         <div v-else class="upload-form">
                             <div class="form-group">
                                 <label for="slide-file"><i class="fas fa-file-code"></i> HTML幻灯片文件 *</label>
                                 <div class="file-input-wrapper">
-                                    <input 
-                                        type="file" 
-                                        id="slide-file" 
-                                        @change="handleSlideFileChange"
-                                        accept=".html,.htm"
-                                        class="file-input"
-                                        ref="slideFileInput"
-                                    >
+                                    <input type="file" id="slide-file" @change="handleSlideFileChange"
+                                        accept=".html,.htm" class="file-input">
                                     <label for="slide-file" class="file-label">
                                         <i class="fas fa-cloud-upload-alt"></i>
                                         <span>点击选择HTML文件</span>
@@ -836,48 +790,35 @@
                                     </label>
                                 </div>
                             </div>
-                            
+
                             <div class="form-group">
                                 <label for="slide-name"><i class="fas fa-heading"></i> 幻灯片名称</label>
-                                <input 
-                                    type="text" 
-                                    id="slide-name" 
-                                    v-model="slideName"
-                                    placeholder="自动从文件名获取"
-                                >
+                                <input type="text" id="slide-name" v-model="slideName" placeholder="自动从文件名获取">
                             </div>
-                            
-                            <button 
-                                class="upload-btn" 
-                                @click="uploadSlide"
-                                :disabled="!slideFile || isUploading"
-                            >
+
+                            <button class="upload-btn" @click="uploadSlide" :disabled="!slideFile || isUploading">
                                 <i class="fas fa-upload" v-if="!isUploading"></i>
                                 <i class="fas fa-spinner fa-spin" v-else></i>
                                 {{ isUploading ? '上传中...' : '上传幻灯片' }}
                             </button>
                         </div>
                     </div>
-                    
+
                     <!-- 播放列表 -->
                     <div v-if="uploadTab === 'music'">
                         <h3 style="margin: 24px 0 16px 0; color: #2c3e50;">
                             <i class="fas fa-list"></i> 播放列表 ({{ playlist.length }})
                         </h3>
-                        
+
                         <div class="list-container">
                             <div v-if="playlist.length === 0" class="empty-state">
                                 <i class="fas fa-music"></i>
                                 <h3>播放列表为空</h3>
                                 <p>请上传音乐文件</p>
                             </div>
-                            
-                            <div 
-                                v-for="(track, index) in playlist" 
-                                :key="track.id"
-                                class="list-item"
-                                :class="{active: currentTrackIndex === index}"
-                            >
+
+                            <div v-for="(track, index) in playlist" :key="track.id" class="list-item"
+                                :class="{active: currentTrackIndex === index}">
                                 <div class="item-info">
                                     <img :src="track.cover_url" :alt="track.title" class="item-cover">
                                     <div class="item-text">
@@ -886,67 +827,51 @@
                                         <div class="item-subtitle">{{ formatTime(track.duration) }}</div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="item-actions">
-                                    <button 
-                                        class="action-btn play"
-                                        @click="selectTrack(index)"
-                                        :title="currentTrackIndex === index ? '正在播放' : '播放此曲'"
-                                    >
-                                        <i class="fas" :class="currentTrackIndex === index ? 'fa-volume-up' : 'fa-play'"></i>
+                                    <button class="action-btn play" @click="selectTrack(index)"
+                                        :title="currentTrackIndex === index ? '正在播放' : '播放此曲'">
+                                        <i class="fas"
+                                            :class="currentTrackIndex === index ? 'fa-volume-up' : 'fa-play'"></i>
                                     </button>
-                                    <button 
-                                        class="action-btn delete"
-                                        @click="deleteTrack(track.id)"
-                                        title="删除"
-                                    >
+                                    <button class="action-btn delete" @click="deleteTrack(track.id)" title="删除">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- 幻灯片列表 -->
                     <div v-else>
                         <h3 style="margin: 24px 0 16px 0; color: #2c3e50;">
                             <i class="fas fa-list"></i> 幻灯片列表 ({{ slides.length }})
                         </h3>
-                        
+
                         <div class="list-container">
                             <div v-if="slides.length === 0" class="empty-state">
                                 <i class="fas fa-file-code"></i>
                                 <h3>幻灯片列表为空</h3>
                                 <p>请上传HTML幻灯片文件</p>
                             </div>
-                            
-                            <div 
-                                v-for="(slide, index) in slides" 
-                                :key="slide.id"
-                                class="list-item"
-                                :class="{active: currentSlideIndex === index}"
-                            >
+
+                            <div v-for="(slide, index) in slides" :key="slide.id" class="list-item"
+                                :class="{active: currentSlideIndex === index}">
                                 <div class="item-info">
-                                    <i class="fas fa-file-code" style="font-size: 32px; color: #667eea; margin: 0 16px;"></i>
+                                    <i class="fas fa-file-code"
+                                        style="font-size: 32px; color: #667eea; margin: 0 16px;"></i>
                                     <div class="item-text">
                                         <div class="item-title">{{ slide.name }}</div>
                                         <div class="item-subtitle">HTML幻灯片</div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="item-actions">
-                                    <button 
-                                        class="action-btn play"
-                                        @click="selectSlide(index)"
-                                        :title="currentSlideIndex === index ? '正在显示' : '显示此幻灯片'"
-                                    >
+                                    <button class="action-btn play" @click="selectSlide(index)"
+                                        :title="currentSlideIndex === index ? '正在显示' : '显示此幻灯片'">
                                         <i class="fas" :class="currentSlideIndex === index ? 'fa-eye' : 'fa-tv'"></i>
                                     </button>
-                                    <button 
-                                        class="action-btn delete"
-                                        @click="deleteSlide(slide.id)"
-                                        title="删除"
-                                    >
+                                    <button class="action-btn delete" @click="deleteSlide(slide.id)" title="删除">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -955,10 +880,11 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- 页脚 -->
             <div class="footer">
-                <p>班级元旦晚会远程控制系统 &copy; {{ new Date().getFullYear() }} | 显示端: <a :href="displayUrl" target="_blank">{{ displayUrl }}</a></p>
+                <p>班级元旦晚会远程控制系统 &copy; {{ new Date().getFullYear() }} | 显示端: <a :href="displayUrl" target="_blank">{{
+                        displayUrl }}</a></p>
             </div>
         </div>
     </div>
@@ -975,7 +901,7 @@
                 const ws = ref(null);
                 const reconnectAttempts = ref(0);
                 const maxReconnectAttempts = 5;
-                
+
                 // 应用状态
                 const currentMode = ref('music');
                 const isPlaying = ref(false);
@@ -983,13 +909,13 @@
                 const volume = ref(80);
                 const currentTrackIndex = ref(-1);
                 const currentSlideIndex = ref(-1);
-                
+
                 // 数据
                 const playlist = ref([]);
                 const slides = ref([]);
                 const currentTrack = ref(null);
                 const currentSlide = ref(null);
-                
+
                 // 上传相关
                 const uploadTab = ref('music');
                 const musicFile = ref(null);
@@ -1004,41 +930,47 @@
                 const musicArtist = ref('');
                 const slideName = ref('');
                 const isUploading = ref(false);
-                
+
                 // 计算属性
                 const progressPercent = computed(() => {
                     if (!currentTrack.value || !currentTrack.value.duration) return 0;
                     return (currentTime.value / currentTrack.value.duration) * 100;
                 });
-                
+
                 const displayUrl = computed(() => {
                     return `${window.location.origin}/display`;
                 });
-                
+
                 // WebSocket连接
                 const connectWebSocket = () => {
                     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
                     const wsUrl = `${protocol}//${window.location.host}/ws/admin`;
-                    
+
+                    console.log('正在连接WebSocket:', wsUrl);
                     ws.value = new WebSocket(wsUrl);
-                    
+
                     ws.value.onopen = () => {
                         isConnected.value = true;
                         connectionStatus.value = '已连接';
                         reconnectAttempts.value = 0;
                         console.log('WebSocket连接已建立');
                     };
-                    
+
                     ws.value.onmessage = (event) => {
-                        const data = JSON.parse(event.data);
-                        handleWebSocketMessage(data);
+                        try {
+                            const data = JSON.parse(event.data);
+                            console.log('收到WebSocket消息:', data.type);
+                            handleWebSocketMessage(data);
+                        } catch (e) {
+                            console.error('解析WebSocket消息失败:', e);
+                        }
                     };
-                    
+
                     ws.value.onclose = () => {
                         isConnected.value = false;
                         connectionStatus.value = '已断开';
                         console.log('WebSocket连接已关闭');
-                        
+
                         // 尝试重新连接
                         if (reconnectAttempts.value < maxReconnectAttempts) {
                             reconnectAttempts.value++;
@@ -1048,12 +980,12 @@
                             }, 3000);
                         }
                     };
-                    
+
                     ws.value.onerror = (error) => {
                         console.error('WebSocket错误:', error);
                     };
                 };
-                
+
                 // 处理WebSocket消息
                 const handleWebSocketMessage = (data) => {
                     switch (data.type) {
@@ -1062,15 +994,18 @@
                             break;
                         case 'playlist_update':
                             playlist.value = data.data.playlist || [];
+                            console.log('播放列表更新:', playlist.value.length);
                             break;
                         case 'slides_update':
                             slides.value = data.data.slides || [];
+                            console.log('幻灯片列表更新:', slides.value.length);
                             break;
                     }
                 };
-                
+
                 // 更新状态
                 const updateState = (state) => {
+                    console.log('更新状态:', state);
                     currentMode.value = state.mode || currentMode.value;
                     isPlaying.value = state.is_playing || false;
                     currentTime.value = state.current_time || 0;
@@ -1082,222 +1017,273 @@
                     currentTrack.value = state.current_track || null;
                     currentSlide.value = state.current_slide || null;
                 };
-                
+
                 // 发送命令
                 const sendCommand = (type, data = {}) => {
                     if (!ws.value || ws.value.readyState !== WebSocket.OPEN) {
                         ElMessage.error('WebSocket未连接');
                         return;
                     }
-                    
+
+                    console.log('发送命令:', type, data);
                     ws.value.send(JSON.stringify({
                         type,
                         data
                     }));
                 };
-                
+
                 // 控制方法
                 const switchMode = (mode) => {
                     sendCommand('switch_mode', { mode });
                 };
-                
+
                 const playMusic = () => {
                     sendCommand('play_music');
                 };
-                
+
                 const pauseMusic = () => {
                     sendCommand('pause_music');
                 };
-                
+
                 const prevTrack = () => {
                     sendCommand('prev_track');
                 };
-                
+
                 const nextTrack = () => {
                     sendCommand('next_track');
                 };
-                
+
                 const selectTrack = (index) => {
                     sendCommand('select_track', { index });
                 };
-                
+
                 const seekMusic = (event) => {
                     if (!currentTrack.value) return;
-                    
+
                     const progressBar = event.currentTarget;
                     const rect = progressBar.getBoundingClientRect();
                     const percent = (event.clientX - rect.left) / rect.width;
                     const time = percent * (currentTrack.value.duration || 0);
-                    
+
                     sendCommand('seek_music', { time });
                 };
-                
+
                 const setVolume = () => {
                     sendCommand('set_volume', { volume: volume.value });
                 };
-                
+
                 const prevSlide = () => {
                     if (slides.value.length === 0) return;
                     let newIndex = currentSlideIndex.value - 1;
                     if (newIndex < 0) newIndex = slides.value.length - 1;
                     selectSlide(newIndex);
                 };
-                
+
                 const nextSlide = () => {
                     if (slides.value.length === 0) return;
                     let newIndex = currentSlideIndex.value + 1;
                     if (newIndex >= slides.value.length) newIndex = 0;
                     selectSlide(newIndex);
                 };
-                
+
                 const selectSlide = (index) => {
                     if (index < 0 || index >= slides.value.length) return;
                     sendCommand('select_slide', { index });
                 };
-                
+
                 // 文件处理
                 const handleMusicFileChange = (event) => {
+                    console.log('音乐文件改变:', event.target.files[0]);
                     musicFile.value = event.target.files[0];
                     musicFileName.value = musicFile.value ? musicFile.value.name : '';
-                    
-                    if (musicFile.value && !musicTitle.value) {
-                        musicTitle.value = musicFile.value.name.replace(/\.[^/.]+$/, "");
+
+                    if (musicFile.value) {
+                        // 自动从文件名提取标题（去除扩展名）
+                        const fileName = musicFile.value.name.replace(/\.[^/.]+$/, "");
+
+                        // 尝试从文件名解析出艺术家和标题（常见格式：艺术家 - 标题）
+                        const match = fileName.match(/(.+?)\s*-\s*(.+)/);
+                        if (match) {
+                            // 格式：艺术家 - 标题
+                            musicArtist.value = match[1].trim();
+                            musicTitle.value = match[2].trim();
+                        } else {
+                            // 如果不是标准格式，使用整个文件名作为标题
+                            musicTitle.value = fileName;
+                            musicArtist.value = '未知艺术家';
+                        }
+
+                        console.log('自动设置标题:', musicTitle.value, '艺术家:', musicArtist.value);
                     }
                 };
-                
+
                 const handleCoverFileChange = (event) => {
+                    console.log('封面文件改变:', event.target.files[0]);
                     coverFile.value = event.target.files[0];
                     coverFileName.value = coverFile.value ? coverFile.value.name : '';
                 };
-                
+
                 const handleLyricsFileChange = (event) => {
+                    console.log('歌词文件改变:', event.target.files[0]);
                     lyricsFile.value = event.target.files[0];
                     lyricsFileName.value = lyricsFile.value ? lyricsFile.value.name : '';
                 };
-                
+
                 const handleSlideFileChange = (event) => {
+                    console.log('幻灯片文件改变:', event.target.files[0]);
                     slideFile.value = event.target.files[0];
                     slideFileName.value = slideFile.value ? slideFile.value.name : '';
-                    
+
                     if (slideFile.value && !slideName.value) {
                         slideName.value = slideFile.value.name.replace(/\.[^/.]+$/, "");
+                        console.log('自动设置幻灯片名称:', slideName.value);
                     }
                 };
-                
+
                 // 上传音乐
                 const uploadMusic = async () => {
+                    console.log('开始上传音乐...');
                     if (!musicFile.value) {
                         ElMessage.warning('请选择音乐文件');
+                        console.error('未选择音乐文件');
                         return;
                     }
-                    
+
                     isUploading.value = true;
-                    
+
                     const formData = new FormData();
                     formData.append('music_file', musicFile.value);
-                    
+
                     if (coverFile.value) {
                         formData.append('cover_file', coverFile.value);
                     }
-                    
+
                     if (lyricsFile.value) {
                         formData.append('lyrics_file', lyricsFile.value);
                     }
-                    
+
                     if (musicTitle.value) {
                         formData.append('title', musicTitle.value);
                     }
-                    
+
                     if (musicArtist.value) {
                         formData.append('artist', musicArtist.value);
                     }
-                    
+
+                    // 调试：显示FormData内容
+                    for (let pair of formData.entries()) {
+                        console.log(pair[0] + ': ', pair[1]);
+                    }
+
                     try {
+                        console.log('发送上传请求到 /api/upload/music');
                         const response = await fetch('/api/upload/music', {
                             method: 'POST',
                             body: formData
                         });
-                        
+
+                        console.log('收到响应:', response.status);
                         const result = await response.json();
-                        
+                        console.log('上传结果:', result);
+
                         if (result.success) {
                             ElMessage.success('音乐上传成功！');
-                            
-                            // 重置表单
+
+                            // 重置表单 - 确保所有相关状态都被重置
                             musicFile.value = null;
                             coverFile.value = null;
                             lyricsFile.value = null;
                             musicFileName.value = '';
                             coverFileName.value = '';
                             lyricsFileName.value = '';
+                            // 可选：保留或清空标题和艺术家
                             musicTitle.value = '';
                             musicArtist.value = '';
-                            
-                            // 重置文件输入框
-                            document.getElementById('music-file').value = '';
-                            if (document.getElementById('cover-file')) {
-                                document.getElementById('cover-file').value = '';
+
+                            // 强制重置文件输入框
+                            const musicInput = document.getElementById('music-file');
+                            const coverInput = document.getElementById('cover-file');
+                            const lyricsInput = document.getElementById('lyrics-file');
+
+                            if (musicInput) {
+                                musicInput.value = '';
+                                musicInput.type = 'file'; // 强制重置类型
+                                setTimeout(() => {
+                                    musicInput.type = 'file';
+                                }, 0);
                             }
-                            if (document.getElementById('lyrics-file')) {
-                                document.getElementById('lyrics-file').value = '';
-                            }
+                            if (coverInput) coverInput.value = '';
+                            if (lyricsInput) lyricsInput.value = '';
                         } else {
                             ElMessage.error(result.message || '上传失败');
                         }
                     } catch (error) {
                         console.error('上传错误:', error);
-                        ElMessage.error('上传过程中发生错误');
+                        ElMessage.error('上传过程中发生错误: ' + error.message);
                     } finally {
                         isUploading.value = false;
                     }
                 };
-                
+
                 // 上传幻灯片
                 const uploadSlide = async () => {
+                    console.log('开始上传幻灯片...');
                     if (!slideFile.value) {
                         ElMessage.warning('请选择HTML文件');
+                        console.error('未选择幻灯片文件');
                         return;
                     }
-                    
+
                     isUploading.value = true;
-                    
+
                     const formData = new FormData();
                     formData.append('slide_file', slideFile.value);
-                    
+
                     if (slideName.value) {
                         formData.append('name', slideName.value);
                     }
-                    
+
+                    // 调试：显示FormData内容
+                    for (let pair of formData.entries()) {
+                        console.log(pair[0] + ': ', pair[1]);
+                    }
+
                     try {
+                        console.log('发送上传请求到 /api/upload/slide');
                         const response = await fetch('/api/upload/slide', {
                             method: 'POST',
                             body: formData
                         });
-                        
+
+                        console.log('收到响应:', response.status);
                         const result = await response.json();
-                        
+                        console.log('上传结果:', result);
+
                         if (result.success) {
                             ElMessage.success('幻灯片上传成功！');
-                            
+
                             // 重置表单
                             slideFile.value = null;
                             slideFileName.value = '';
                             slideName.value = '';
-                            
-                            document.getElementById('slide-file').value = '';
+
+                            // 重置文件输入框
+                            const slideInput = document.getElementById('slide-file');
+                            if (slideInput) slideInput.value = '';
                         } else {
                             ElMessage.error(result.message || '上传失败');
                         }
                     } catch (error) {
                         console.error('上传错误:', error);
-                        ElMessage.error('上传过程中发生错误');
+                        ElMessage.error('上传过程中发生错误: ' + error.message);
                     } finally {
                         isUploading.value = false;
                     }
                 };
-                
+
                 // 删除音乐
                 const deleteTrack = async (trackId) => {
+                    console.log('删除音乐:', trackId);
                     try {
                         await ElMessageBox.confirm(
                             '确定要删除这首音乐吗？',
@@ -1308,13 +1294,14 @@
                                 type: 'warning'
                             }
                         );
-                        
+
                         const response = await fetch(`/api/track/${trackId}`, {
                             method: 'DELETE'
                         });
-                        
+
                         const result = await response.json();
-                        
+                        console.log('删除结果:', result);
+
                         if (result.success) {
                             ElMessage.success('删除成功');
                         } else {
@@ -1326,9 +1313,10 @@
                         }
                     }
                 };
-                
+
                 // 删除幻灯片
                 const deleteSlide = async (slideId) => {
+                    console.log('删除幻灯片:', slideId);
                     try {
                         await ElMessageBox.confirm(
                             '确定要删除这个幻灯片吗？',
@@ -1339,13 +1327,14 @@
                                 type: 'warning'
                             }
                         );
-                        
+
                         const response = await fetch(`/api/slide/${slideId}`, {
                             method: 'DELETE'
                         });
-                        
+
                         const result = await response.json();
-                        
+                        console.log('删除结果:', result);
+
                         if (result.success) {
                             ElMessage.success('删除成功');
                         } else {
@@ -1357,42 +1346,48 @@
                         }
                     }
                 };
-                
+
                 // 格式化时间
                 const formatTime = (seconds) => {
                     if (!seconds || isNaN(seconds)) return '0:00';
-                    
+
                     const mins = Math.floor(seconds / 60);
                     const secs = Math.floor(seconds % 60);
                     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
                 };
-                
+
                 // 初始化
                 const init = async () => {
-                    // 连接WebSocket
-                    connectWebSocket();
-                    
+                    console.log('初始化管理端...');
+
                     // 获取初始状态
                     try {
+                        console.log('获取初始状态...');
                         const response = await fetch('/api/state');
                         const state = await response.json();
+                        console.log('初始状态:', state);
                         updateState(state);
                     } catch (error) {
                         console.error('获取初始状态失败:', error);
                     }
+
+                    // 连接WebSocket
+                    connectWebSocket();
                 };
-                
+
                 // 生命周期
                 onMounted(() => {
+                    console.log('管理端已挂载');
                     init();
                 });
-                
+
                 onUnmounted(() => {
+                    console.log('管理端卸载');
                     if (ws.value) {
                         ws.value.close();
                     }
                 });
-                
+
                 return {
                     // 状态
                     isConnected,
@@ -1403,15 +1398,19 @@
                     volume,
                     currentTrackIndex,
                     currentSlideIndex,
-                    
+
                     // 数据
                     playlist,
                     slides,
                     currentTrack,
                     currentSlide,
-                    
-                    // 上传相关
+
+                    // 上传相关 - 确保这些变量都被暴露
                     uploadTab,
+                    musicFile,        // 添加这个
+                    coverFile,        // 添加这个
+                    lyricsFile,       // 添加这个
+                    slideFile,        // 添加这个
                     musicFileName,
                     coverFileName,
                     lyricsFileName,
@@ -1420,11 +1419,11 @@
                     musicArtist,
                     slideName,
                     isUploading,
-                    
+
                     // 计算属性
                     progressPercent,
                     displayUrl,
-                    
+
                     // 方法
                     switchMode,
                     playMusic,
@@ -1437,7 +1436,7 @@
                     prevSlide,
                     nextSlide,
                     selectSlide,
-                    
+
                     // 文件处理
                     handleMusicFileChange,
                     handleCoverFileChange,
@@ -1453,4 +1452,5 @@
         }).use(ElementPlus).mount('#app');
     </script>
 </body>
+
 </html>
