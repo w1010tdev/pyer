@@ -260,7 +260,18 @@ def save_upload_file(file: UploadFile, subdir: str) -> str:
 async def get_audio_duration(file_path: Path) -> int:
     """获取音频文件时长"""
     try:
-        # 使用简单方法估计时长，实际项目中可以使用mutagen等库
+        # 尝试使用mutagen库获取准确的音频时长
+        try:
+            from mutagen import File
+            audio_file = File(str(file_path))
+            if audio_file is not None and audio_file.info is not None:
+                duration = audio_file.info.length
+                return int(duration)
+        except ImportError:
+            # 如果mutagen不可用，使用文件大小估算
+            logger.warning("mutagen库未安装，使用文件大小估算音频时长")
+        
+        # 使用文件大小估算时长（备用方法）
         file_size = file_path.stat().st_size
         
         # 根据文件大小和类型估算时长
@@ -271,11 +282,14 @@ async def get_audio_duration(file_path: Path) -> int:
         elif file_path.suffix.lower() == '.wav':
             # 约1411kbps = 176KB/s
             duration = file_size / (176 * 1024)
+        elif file_path.suffix.lower() == '.flac':
+            # FLAC压缩率可变，大约2-5倍，按3倍估算
+            duration = (file_size * 3) / (176 * 1024)
         else:
             # 默认按MP3估算
             duration = file_size / (16 * 1024)
         
-        return max(30, min(600, int(duration)))  # 限制在30秒到10分钟之间
+        return max(10, min(7200, int(duration)))  # 限制在10秒到2小时之间
     except Exception as e:
         logger.warning(f"获取音频时长失败: {e}")
         return 180  # 默认3分钟
@@ -479,7 +493,14 @@ async def websocket_display(websocket: WebSocket):
             data = await websocket.receive_json()
             # 处理显示端的时间更新等
             if data.get("type") == "time_update":
-                state_manager.current_time = data.get("data", {}).get("time", 0)
+                time = data.get("data", {}).get("time", 0)
+                state_manager.current_time = time
+                
+                # 广播时间更新给管理端，实现实时进度同步
+                await state_manager.broadcast_to_admin(ControlCommand(
+                    type="time_update",
+                    data={"time": time}
+                ))
                 
     except WebSocketDisconnect:
         state_manager.disconnect_display(websocket)

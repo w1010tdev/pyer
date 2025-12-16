@@ -67,8 +67,38 @@ document.addEventListener('DOMContentLoaded', function() {
         // 初始化全屏按钮
         initFullscreenButton();
         
-        // 初始化音频控件事件
-        initAudioControls();
+    // 不初始化音频控件事件 - 只允许服务器端控制
+    // initAudioControls();
+    
+    // 移除所有本地控制功能，只允许服务器控制
+    // 播放/暂停按钮将不会响应点击事件
+    playPauseBtn.style.pointerEvents = 'none';
+    playPauseBtn.style.opacity = '0.3';
+    
+    // 进度条将不会响应点击事件
+    progressBar.style.pointerEvents = 'none';
+    
+    // 音量滑块将不会响应点击事件
+    volumeSlider.style.pointerEvents = 'none';
+    
+    // 保持服务器控制功能
+    // 发送时间更新到服务器（用于同步）
+    audio.addEventListener('timeupdate', function() {
+        updateProgress();
+        updateLyricDisplay(audio.currentTime);
+        
+        // 发送时间更新到服务器
+        if (isConnected && ws && ws.readyState === WebSocket.OPEN) {
+            try {
+                ws.send(JSON.stringify({
+                    type: 'time_update',
+                    data: { time: audio.currentTime }
+                }));
+            } catch (e) {
+                console.error('发送时间更新失败:', e);
+            }
+        }
+    });
     }
     
     // 创建音频启用覆盖层
@@ -196,117 +226,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // 初始化音频控件事件
-    function initAudioControls() {
-        // 播放/暂停按钮
-        playPauseBtn.addEventListener('click', function() {
-            if (!audioEnabled) {
-                audioEnableOverlay.style.display = 'flex';
-                return;
-            }
-            
-            if (isPlaying) {
-                pause();
-            } else {
-                play();
-            }
-        });
-        
-        // 进度条点击
-        progressBar.addEventListener('click', function(e) {
-            if (!audio.duration) return;
-            
-            const rect = progressBar.getBoundingClientRect();
-            const percent = (e.clientX - rect.left) / rect.width;
-            const time = percent * audio.duration;
-            
-            seek(time);
-            
-            if (isConnected && ws && ws.readyState === WebSocket.OPEN) {
-                try {
-                    ws.send(JSON.stringify({
-                        type: 'seek',
-                        data: { time: time }
-                    }));
-                } catch (e) {
-                    console.error('发送跳转命令失败:', e);
-                }
-            }
-        });
-        
-        // 音量滑块点击
-        volumeSlider.addEventListener('click', function(e) {
-            const rect = volumeSlider.getBoundingClientRect();
-            const percent = (e.clientX - rect.left) / rect.width;
-            const volume = Math.max(0, Math.min(1, percent));
-            
-            setVolume(volume);
-            
-            if (isConnected && ws && ws.readyState === WebSocket.OPEN) {
-                try {
-                    ws.send(JSON.stringify({
-                        type: 'volume',
-                        data: { volume: volume * 100 }
-                    }));
-                } catch (e) {
-                    console.error('发送音量命令失败:', e);
-                }
-            }
-        });
-        
-        // 拖动进度条
-        let isDragging = false;
-        let dragX = 0;
-        
-        progressBar.addEventListener('mousedown', function(e) {
-            isDragging = true;
-            dragX = e.clientX;
-            updateProgressOnDrag(e);
-        });
-        
-        document.addEventListener('mousemove', function(e) {
-            if (isDragging) {
-                dragX = e.clientX;
-                updateProgressOnDrag(e);
-            }
-        });
-        
-        document.addEventListener('mouseup', function() {
-            if (isDragging) {
-                isDragging = false;
-                if (audio.duration) {
-                    const rect = progressBar.getBoundingClientRect();
-                    const percent = Math.max(0, Math.min(1, (dragX - rect.left) / rect.width));
-                    const time = percent * audio.duration;
-                    
-                    seek(time);
-                    
-                    if (isConnected && ws && ws.readyState === WebSocket.OPEN) {
-                        try {
-                            ws.send(JSON.stringify({
-                                type: 'seek',
-                                data: { time: time }
-                            }));
-                        } catch (e) {
-                            console.error('发送跳转命令失败:', e);
-                        }
-                    }
-                }
-            }
-        });
-        
-        function updateProgressOnDrag(e) {
-            if (audio.duration) {
-                const rect = progressBar.getBoundingClientRect();
-                const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-                progressFilled.style.width = `${percent * 100}%`;
-                
-                const time = percent * audio.duration;
-                currentTimeDisplay.textContent = formatTime(time);
-            }
-        }
     }
     
-    // 播放音乐
+    // 播放音乐 - 只响应服务器命令
     function play() {
         if (!audio.src) return;
         
@@ -323,12 +245,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // 暂停音乐
+    // 暂停音乐 - 只响应服务器命令
     function pause() {
         audio.pause();
     }
     
-    // 跳转到指定时间
+    // 跳转到指定时间 - 只响应服务器命令
     function seek(time) {
         if (!audio.duration) return;
         
@@ -338,7 +260,7 @@ document.addEventListener('DOMContentLoaded', function() {
         updateLyricDisplay(validTime);
     }
     
-    // 设置音量
+    // 设置音量 - 只响应服务器命令
     function setVolume(volume) {
         currentVolume = Math.max(0, Math.min(1, volume));
         audio.volume = currentVolume;
