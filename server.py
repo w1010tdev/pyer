@@ -306,11 +306,14 @@ async def handle_admin_command(data: dict):
         state_manager.is_playing = True
         await state_manager.broadcast_to_display(ControlCommand(
             type="play",
-            data={"time": command_data.get("time")}
+            data={"time": state_manager.current_time}  # 发送当前时间
         ))
         await state_manager.broadcast_to_admin(ControlCommand(
             type="state_update",
-            data={"is_playing": True}
+            data={
+                "is_playing": True,
+                "current_time": state_manager.current_time  # 发送当前时间
+            }
         ))
         
     elif command_type == "pause_music":
@@ -379,21 +382,24 @@ async def handle_admin_command(data: dict):
             state_manager.current_track_index = index
             state_manager.current_track = state_manager.playlist[index]
             state_manager.is_playing = True
-            
+            state_manager.current_time = 0  # 选择新曲目时重置时间
+
             await state_manager.broadcast_to_display(ControlCommand(
                 type="track_change",
                 data={
                     "track": state_manager.current_track.dict(),
-                    "play": True
+                    "play": True,
+                    "time": 0  # 重置时间
                 }
             ))
-            
+
             await state_manager.broadcast_to_admin(ControlCommand(
                 type="state_update",
                 data={
                     "current_track_index": state_manager.current_track_index,
                     "current_track": state_manager.current_track.dict(),
-                    "is_playing": True
+                    "is_playing": True,
+                    "current_time": 0  # 重置时间
                 }
             ))
             
