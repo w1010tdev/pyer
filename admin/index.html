@@ -909,11 +909,6 @@
                 const volume = ref(80);
                 const currentTrackIndex = ref(-1);
                 const currentSlideIndex = ref(-1);
-                
-                // 定时器用于实时更新进度条
-                let progressTimer = null;
-                // 标记是否正在拖动进度条，以避免冲突
-                let isDraggingProgress = false;
 
                 // 数据
                 const playlist = ref([]);
@@ -1005,58 +1000,21 @@
                             slides.value = data.data.slides || [];
                             console.log('幻灯片列表更新:', slides.value.length);
                             break;
-                        case 'time_update':
-                            // 实时更新播放时间
-                            if (data.data && data.data.time !== undefined) {
-                                currentTime.value = data.data.time;
-                                // 更新进度条定时器以保持同步
-                                updateProgressTimer();
-                            }
-                            break;
                     }
                 };
 
-                // 更新状态
                 const updateState = (state) => {
                     console.log('更新状态:', state);
-                    currentMode.value = state.mode || currentMode.value;
-                    isPlaying.value = state.is_playing || false;
-                    currentTime.value = state.current_time || 0;
-                    volume.value = state.volume || 80;
-                    currentTrackIndex.value = state.current_track_index ?? -1;
-                    currentSlideIndex.value = state.current_slide_index ?? -1;
-                    playlist.value = state.playlist || playlist.value;
-                    slides.value = state.slides || slides.value;
-                    currentTrack.value = state.current_track || null;
-                    currentSlide.value = state.current_slide || null;
-                    
-                    // 根据播放状态启动或停止进度条更新定时器
-                    updateProgressTimer();
-                };
-
-                // 更新进度条定时器
-                const updateProgressTimer = () => {
-                    // 清除现有定时器
-                    if (progressTimer) {
-                        clearInterval(progressTimer);
-                        progressTimer = null;
-                    }
-                    
-                    // 如果正在播放、有当前曲目，且没有在拖动进度条，启动定时器
-                    if (isPlaying.value && currentTrack.value && currentTrack.value.duration > 0 && !isDraggingProgress) {
-                        progressTimer = setInterval(() => {
-                            // 每秒增加时间，确保进度条平滑更新
-                            if (currentTime.value < currentTrack.value.duration) {
-                                currentTime.value += 1;
-                            } else {
-                                // 如果达到最大时长，停止定时器
-                                if (progressTimer) {
-                                    clearInterval(progressTimer);
-                                    progressTimer = null;
-                                }
-                            }
-                        }, 1000);
-                    }
+                    if (state.mode !== undefined) currentMode.value = state.mode;
+                    if (state.is_playing !== undefined) isPlaying.value = state.is_playing;
+                    if (state.current_time !== undefined) currentTime.value = state.current_time;
+                    if (state.volume !== undefined) volume.value = state.volume;
+                    if (state.current_track_index !== undefined) currentTrackIndex.value = state.current_track_index;
+                    if (state.current_slide_index !== undefined) currentSlideIndex.value = state.current_slide_index;
+                    if (state.playlist !== undefined) playlist.value = state.playlist;
+                    if (state.slides !== undefined) slides.value = state.slides;
+                    if (state.current_track !== undefined) currentTrack.value = state.current_track;
+                    if (state.current_slide !== undefined) currentSlide.value = state.current_slide;
                 };
 
                 // 发送命令
@@ -1080,16 +1038,10 @@
 
                 const playMusic = () => {
                     sendCommand('play_music');
-                    // 立即更新播放状态，避免等待服务器响应的延迟
-                    isPlaying.value = true;
-                    updateProgressTimer();
                 };
 
                 const pauseMusic = () => {
                     sendCommand('pause_music');
-                    // 立即更新播放状态，避免等待服务器响应的延迟
-                    isPlaying.value = false;
-                    updateProgressTimer();
                 };
 
                 const prevTrack = () => {
@@ -1112,19 +1064,7 @@
                     const percent = (event.clientX - rect.left) / rect.width;
                     const time = percent * (currentTrack.value.duration || 0);
 
-                    // 标记正在拖动（虽然这里是点击，但也是进度条操作）
-                    isDraggingProgress = true;
-                    
                     sendCommand('seek_music', { time });
-                    
-                    // 立即更新时间，避免等待服务器响应的延迟
-                    currentTime.value = time;
-                    
-                    // 稍后重置拖动标记并更新定时器
-                    setTimeout(() => {
-                        isDraggingProgress = false;
-                        updateProgressTimer();
-                    }, 100);
                 };
 
                 const setVolume = () => {
@@ -1444,11 +1384,6 @@
                     console.log('管理端卸载');
                     if (ws.value) {
                         ws.value.close();
-                    }
-                    // 清理进度条定时器
-                    if (progressTimer) {
-                        clearInterval(progressTimer);
-                        progressTimer = null;
                     }
                 });
 
