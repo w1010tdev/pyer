@@ -15,6 +15,15 @@ from pydantic import BaseModel
 import uvicorn
 from dotenv import load_dotenv
 
+import mutagen
+from mutagen.mp3 import MP3
+from mutagen.flac import FLAC
+from mutagen.oggvorbis import OggVorbis
+from mutagen.wave import WAVE
+from mutagen.mp4 import MP4
+from mutagen.asf import ASF
+from mutagen.aac import AAC
+
 from config import *
 
 # 加载环境变量
@@ -344,26 +353,60 @@ def save_upload_file(file: UploadFile, subdir: str) -> str:
     return f"/uploads/{subdir}/{filename}"
 
 async def get_audio_duration(file_path: Path) -> int:
-    """获取音频文件时长"""
+    """使用mutagen获取音频文件时长"""
     try:
-        # 使用简单方法估计时长，实际项目中可以使用mutagen等库
+        # 尝试使用mutagen直接打开文件
+        audio = mutagen.File(str(file_path))
+        
+        if audio is None:
+            logger.warning(f"mutagen无法识别文件格式: {file_path}")
+            return get_audio_duration_fallback(file_path)
+        
+        # 获取时长（秒）
+        duration = audio.info.length
+        
+        if duration <= 0:
+            logger.warning(f"音频时长异常: {duration} 秒, 文件: {file_path}")
+            return get_audio_duration_fallback(file_path)
+        
+        # 确保返回整数秒
+        return int(duration)
+        
+    except Exception as e:
+        logger.error(f"使用mutagen获取音频时长失败 {file_path}: {e}")
+        return get_audio_duration_fallback(file_path)
+
+def get_audio_duration_fallback(file_path: Path) -> int:
+    """备用方法获取音频时长"""
+    try:
+        # 尝试使用文件信息估算
+        file_ext = file_path.suffix.lower()
         file_size = file_path.stat().st_size
         
-        # 根据文件大小和类型估算时长
-        # MP3大约128kbps，WAV大约1411kbps
-        if file_path.suffix.lower() == '.mp3':
-            # 约128kbps = 16KB/s
-            duration = file_size / (16 * 1024)
-        elif file_path.suffix.lower() == '.wav':
-            # 约1411kbps = 176KB/s
-            duration = file_size / (176 * 1024)
-        else:
-            # 默认按MP3估算
-            duration = file_size / (16 * 1024)
+        # 常见音频格式的估算比特率（kbps）
+        bitrate_estimates = {
+            '.mp3': 128,      # MP3常见比特率
+            '.mp4': 128,      # MP4/AAC常见比特率
+            '.m4a': 128,
+            '.aac': 128,
+            '.flac': 1000,    # FLAC无损，比特率较高
+            '.wav': 1411,     # WAV CD质量
+            '.ogg': 160,      # OGG Vorbis
+            '.wma': 128,      # Windows Media Audio
+        }
         
-        return max(30, min(600, int(duration)))  # 限制在30秒到10分钟之间
+        # 获取比特率估算值
+        bitrate = bitrate_estimates.get(file_ext, 128)  # 默认128kbps
+        
+        # 计算时长：文件大小(字节) / (比特率(kbps) * 1000 / 8)
+        # 比特率(kbps) = 千比特/秒，1字节=8比特
+        duration = file_size / (bitrate * 1000 / 8)
+        
+        # 限制在合理范围内（10秒到30分钟）
+        return max(10, min(1800, int(duration)))
+        
     except Exception as e:
-        logger.warning(f"获取音频时长失败: {e}")
+        logger.error(f"备用方法获取时长也失败 {file_path}: {e}")
         return 180  # 默认3分钟
 
 # WebSocket连接 - 管理端
@@ -756,6 +799,16 @@ async def backup_database():
     except Exception as e:
         logger.error(f"备份数据库失败: {e}")
         return {"success": False, "message": f"备份失败: {e}"}
+
+@app.post("/api/maintenance/repair_durations")
+async def repair_audio_durations():
+    """修复所有音频文件的时长信息"""
+    try:
+        repaired_count = persistence_manager.repair_music_durations()
+        return {"success": True, "message": f"已修复 {repaired_count} 个音频文件的时长", "repaired_count": repaired_count}
+    except Exception as e:
+        logger.error(f"修复音频时长失败: {e}")
+        return {"success": False, "message": f"修复失败: {e}"}
 
 @app.get("/api/maintenance/status")
 async def get_maintenance_status():
