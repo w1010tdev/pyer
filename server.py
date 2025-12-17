@@ -13,8 +13,15 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
+from dotenv import load_dotenv
 
 from config import *
+
+# 加载环境变量
+load_dotenv()
+
+# 导入持久化管理器
+from persistence import persistence_manager
 
 # 配置日志
 logging.basicConfig(
@@ -78,9 +85,10 @@ class StateManager:
         self.current_time: float = 0.0
         self.volume: int = 80
         
-        # 数据存储
+        # 从持久化存储加载数据
         self.playlist: List[Track] = []
         self.slides: List[Slide] = []
+        self.load_from_persistence()
         
         # 当前显示的内容
         self.current_track: Optional[Track] = None
@@ -236,6 +244,84 @@ class StateManager:
             self.current_slide_index = max(0, self.current_slide_index - 1)
             self.current_slide = self.slides[self.current_slide_index] if self.slides else None
 
+    def load_from_persistence(self):
+        """从持久化存储加载数据"""
+        try:
+            # 加载音乐
+            music_data = persistence_manager.get_all_music_tracks()
+            self.playlist = [Track(**data) for data in music_data]
+            
+            # 加载幻灯片
+            slides_data = persistence_manager.get_all_slides()
+            self.slides = [Slide(**data) for data in slides_data]
+            
+            # 设置当前曲目和幻灯片
+            if self.playlist:
+                self.current_track_index = 0
+                self.current_track = self.playlist[0]
+            
+            if self.slides:
+                self.current_slide_index = 0
+                self.current_slide = self.slides[0]
+                
+            logger.info(f"从持久化存储加载了 {len(self.playlist)} 首音乐和 {len(self.slides)} 个幻灯片")
+        except Exception as e:
+            logger.error(f"从持久化存储加载数据失败: {e}")
+            self.playlist = []
+            self.slides = []
+
+    def add_track(self, track: Track):
+        """添加曲目到播放列表并持久化"""
+        self.playlist.append(track)
+        
+        # 保存到持久化存储
+        persistence_manager.add_music_track(track.dict())
+        
+        if len(self.playlist) == 1 and self.current_track_index == -1:
+            self.current_track_index = 0
+            self.current_track = track
+
+    def add_slide(self, slide: Slide):
+        """添加幻灯片到列表并持久化"""
+        self.slides.append(slide)
+        
+        # 保存到持久化存储
+        persistence_manager.add_slide(slide.dict())
+        
+        if len(self.slides) == 1 and self.current_slide_index == -1:
+            self.current_slide_index = 0
+            self.current_slide = slide
+
+    def remove_track(self, track_id: str):
+        """从播放列表移除曲目并更新持久化存储"""
+        # 先从播放列表移除
+        self.playlist = [track for track in self.playlist if track.id != track_id]
+        
+        # 从持久化存储删除
+        persistence_manager.delete_music_track(track_id)
+        
+        if not self.playlist:
+            self.current_track_index = -1
+            self.current_track = None
+        elif self.current_track and self.current_track.id == track_id:
+            self.current_track_index = max(0, self.current_track_index - 1)
+            self.current_track = self.playlist[self.current_track_index] if self.playlist else None
+
+    def remove_slide(self, slide_id: str):
+        """从幻灯片列表移除并更新持久化存储"""
+        # 先从列表移除
+        self.slides = [slide for slide in self.slides if slide.id != slide_id]
+        
+        # 从持久化存储删除
+        persistence_manager.delete_slide(slide_id)
+        
+        if not self.slides:
+            self.current_slide_index = -1
+            self.current_slide = None
+        elif self.current_slide and self.current_slide.id == slide_id:
+            self.current_slide_index = max(0, self.current_slide_index - 1)
+            self.current_slide = self.slides[self.current_slide_index] if self.slides else None
+
 state_manager = StateManager()
 
 # 工具函数
@@ -304,15 +390,18 @@ async def handle_admin_command(data: dict):
     
     if command_type == "play_music":
         state_manager.is_playing = True
+        # 确保发送当前时间
         await state_manager.broadcast_to_display(ControlCommand(
             type="play",
-            data={"time": state_manager.current_time}  # 发送当前时间
+            data={
+                "time": command_data.get("time", state_manager.current_time)  # 优先使用命令中的时间
+            }
         ))
         await state_manager.broadcast_to_admin(ControlCommand(
             type="state_update",
             data={
                 "is_playing": True,
-                "current_time": state_manager.current_time  # 发送当前时间
+                "current_time": state_manager.current_time
             }
         ))
         
@@ -407,10 +496,18 @@ async def handle_admin_command(data: dict):
         time = command_data.get("time", 0)
         state_manager.current_time = time
         
+        # 发送给所有显示端和管理端，确保状态一致
         await state_manager.broadcast_to_display(ControlCommand(
             type="seek",
             data={"time": time}
         ))
+        
+        # 如果当前正在播放，更新播放状态
+        if state_manager.is_playing:
+            await state_manager.broadcast_to_display(ControlCommand(
+                type="play",
+                data={"time": time}  # 同时发送播放命令，确保时间同步
+            ))
         
         await state_manager.broadcast_to_admin(ControlCommand(
             type="state_update",
@@ -639,6 +736,35 @@ async def get_lyrics(filename: str):
     except Exception as e:
         logger.error(f"读取歌词文件失败: {e}")
         raise HTTPException(500, "读取歌词文件失败")
+
+@app.post("/api/maintenance/cleanup")
+async def cleanup_orphaned_files():
+    """清理孤立的文件"""
+    try:
+        persistence_manager.cleanup_orphaned_files()
+        return {"success": True, "message": "文件清理完成"}
+    except Exception as e:
+        logger.error(f"清理文件失败: {e}")
+        return {"success": False, "message": f"清理失败: {e}"}
+
+@app.post("/api/maintenance/backup")
+async def backup_database():
+    """备份数据库"""
+    try:
+        persistence_manager.backup_database()
+        return {"success": True, "message": "数据库备份完成"}
+    except Exception as e:
+        logger.error(f"备份数据库失败: {e}")
+        return {"success": False, "message": f"备份失败: {e}"}
+
+@app.get("/api/maintenance/status")
+async def get_maintenance_status():
+    """获取维护状态"""
+    return {
+        "music_count": len(persistence_manager.music_database),
+        "slides_count": len(persistence_manager.slides_database),
+        "data_dir": str(persistence_manager.data_dir)
+    }
 
 @app.get("/")
 async def root():

@@ -4,4 +4,5 @@ python-multipart==0.0.6
 websockets==12.0
 pydantic==2.5.0
 Pillow==10.1.0
-mutagen
+mutagen==1.47.0
+python-dotenv==1.0.0
