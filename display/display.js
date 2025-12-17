@@ -231,6 +231,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function play() {
         if (!audio.src) return;
         
+        // 检查是否已启用音频
         if (!audioEnabled) {
             audioEnableOverlay.style.display = 'flex';
             return;
@@ -271,10 +272,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const icon = playPauseBtn.querySelector('i');
         if (isPlaying) {
             icon.className = 'fas fa-pause';
-            playPauseBtn.title = '暂停';
+            playPauseBtn.title = '正在播放';
         } else {
             icon.className = 'fas fa-play';
-            playPauseBtn.title = '播放';
+            playPauseBtn.title = '已暂停';
         }
     }
     
@@ -317,9 +318,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${window.location.host}/ws/display`;
         
+        console.log('正在连接WebSocket:', wsUrl);
+        
         ws = new WebSocket(wsUrl);
         
         ws.onopen = function() {
+            console.log('显示端WebSocket连接已建立');
+            // 连接成功后立即发送当前状态
+            sendCurrentState();
+            
             isConnected = true;
             updateConnectionStatus(true);
             reconnectAttempts = 0;
@@ -400,7 +407,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
                 
             case 'play':
-                playMusic(data.data);
+                playMusic(data.data || {});
                 break;
                 
             case 'pause':
@@ -422,7 +429,32 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentMode !== 'music') {
             switchToMusicMode(data);
         } else {
+            // 如果已经有音乐在播放，检查是否需要切换
+            if (currentTrack && data.track && currentTrack.url !== data.track.url) {
+                // 曲目变了，重新加载
+                changeTrack(data);
+            } else {
+                // 只是状态更新
+            }
             updateMusicDisplay(data);
+        }
+    }
+    
+    // 发送当前状态到服务器
+    function sendCurrentState() {
+        if (!isConnected || !ws || ws.readyState !== WebSocket.OPEN) return;
+        
+        try {
+            const state = {
+                type: 'time_update',
+                data: {
+                    time: audio.currentTime || 0,
+                    is_playing: isPlaying
+                }
+            };
+            ws.send(JSON.stringify(state));
+        } catch (e) {
+            console.error('发送状态失败:', e);
         }
     }
     

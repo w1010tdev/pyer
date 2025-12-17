@@ -8,6 +8,7 @@ from typing import Dict, List, Optional, Set
 from pathlib import Path
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, File, Form, HTTPException
+from websockets.exceptions import ConnectionClosedError
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -415,10 +416,13 @@ async def websocket_admin(websocket: WebSocket):
     await state_manager.connect_admin(websocket)
     try:
         while True:
-            data = await websocket.receive_json()
-            await handle_admin_command(data)
-            
-    except WebSocketDisconnect:
+            try:
+                data = await websocket.receive_json()
+                await handle_admin_command(data)
+            except Exception as e:
+                logger.error(f"处理管理端消息时出错: {e}")
+                
+    except (WebSocketDisconnect, ConnectionClosedError):
         state_manager.disconnect_admin(websocket)
         logger.info("管理端WebSocket连接断开")
     except Exception as e:
@@ -449,6 +453,9 @@ async def handle_admin_command(data: dict):
         ))
         
     elif command_type == "pause_music":
+        # 暂停时保存当前时间
+        state_manager.current_time = command_data.get("time", state_manager.current_time)
+        
         state_manager.is_playing = False
         await state_manager.broadcast_to_display(ControlCommand(
             type="pause"
@@ -469,14 +476,15 @@ async def handle_admin_command(data: dict):
             await state_manager.broadcast_to_display(ControlCommand(
                 type="track_change",
                 data={
-                    "track": state_manager.current_track.dict(),
-                    "play": True
+                    "track": state_manager.current_track.dict()
                 }
             ))
             
             await state_manager.broadcast_to_admin(ControlCommand(
                 type="state_update",
                 data={
+                    "mode": "music",  # 确保模式正确
+                    "is_playing": True,
                     "current_track_index": state_manager.current_track_index,
                     "current_track": state_manager.current_track.dict(),
                     "is_playing": True
@@ -494,14 +502,15 @@ async def handle_admin_command(data: dict):
             await state_manager.broadcast_to_display(ControlCommand(
                 type="track_change",
                 data={
-                    "track": state_manager.current_track.dict(),
-                    "play": True
+                    "track": state_manager.current_track.dict()
                 }
             ))
             
             await state_manager.broadcast_to_admin(ControlCommand(
                 type="state_update",
                 data={
+                    "mode": "music",
+                    "is_playing": True,
                     "current_track_index": state_manager.current_track_index,
                     "current_track": state_manager.current_track.dict(),
                     "is_playing": True
@@ -514,23 +523,23 @@ async def handle_admin_command(data: dict):
             state_manager.current_track_index = index
             state_manager.current_track = state_manager.playlist[index]
             state_manager.is_playing = True
-            state_manager.current_time = 0  # 选择新曲目时重置时间
+            state_manager.current_time = 0  # 选择新曲目时从头开始
 
             await state_manager.broadcast_to_display(ControlCommand(
                 type="track_change",
                 data={
-                    "track": state_manager.current_track.dict(),
-                    "play": True,
-                    "time": 0  # 重置时间
+                    "track": state_manager.current_track.dict()
                 }
             ))
 
             await state_manager.broadcast_to_admin(ControlCommand(
                 type="state_update",
                 data={
+                    "mode": "music",
+                    "is_playing": True,
                     "current_track_index": state_manager.current_track_index,
                     "current_track": state_manager.current_track.dict(),
-                    "is_playing": True,
+                    "current_time": 0,  # 重置时间
                     "current_time": 0  # 重置时间
                 }
             ))

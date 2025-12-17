@@ -1,0 +1,235 @@
+--- display/display.js
++++ display/display.js
+@@ -75,10 +75,10 @@
+             const icon = playPauseBtn.querySelector('i');
+             if (isPlaying) {
+                 icon.className = 'fas fa-pause';
+-                playPauseBtn.title = '暂停';
++                playPauseBtn.title = '正在播放';
+             } else {
+                 icon.className = 'fas fa-play';
+-                playPauseBtn.title = '播放';
++                playPauseBtn.title = '已暂停';
+             }
+         }
+         
+@@ -137,6 +137,7 @@
+         function play() {
+             if (!audio.src) return;
+             
++            // 检查是否已启用音频
+             if (!audioEnabled) {
+                 audioEnableOverlay.style.display = 'flex';
+                 return;
+@@ -200,10 +201,16 @@
+         function connectWebSocket() {
+             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+             const wsUrl = `${protocol}//${window.location.host}/ws/display`;
++            
++            console.log('正在连接WebSocket:', wsUrl);
+             
+             ws = new WebSocket(wsUrl);
+             
+             ws.onopen = function() {
++                console.log('显示端WebSocket连接已建立');
++                // 连接成功后立即发送当前状态
++                sendCurrentState();
++                
+                 isConnected = true;
+                 updateConnectionStatus(true);
+                 reconnectAttempts = 0;
+@@ -259,6 +266,17 @@
+         function updateConnectionStatus(connected) {
+             if (connected) {
+                 statusDot.className = 'status-dot connected';
++                statusText.textContent = '已连接';
++                musicStatusDot.className = 'status-dot connected';
++                musicStatusText.textContent = '已连接';
++            } else {
++                statusDot.className = 'status-dot';
++                statusText.textContent = '已断开';
++                musicStatusDot.className = 'status-dot';
++                musicStatusText.textContent = '已断开';
++            }
++        }
++        
+                 statusText.textContent = '已连接';
+             } else {
+                 statusDot.className = 'status-dot';
+@@ -319,9 +337,9 @@
+                     break;
+                     
+                 case 'play':
+-                    playMusic(data.data);
++                    playMusic(data.data || {});
+                     break;
+-                    
++                
+                 case 'pause':
+                     pauseMusic();
+                     break;
+@@ -337,10 +355,35 @@
+         }
+         
+         // 显示音乐模式
++        // 发送当前状态到服务器
++        function sendCurrentState() {
++            if (!isConnected || !ws || ws.readyState !== WebSocket.OPEN) return;
++            
++            try {
++                const state = {
++                    type: 'time_update',
++                    data: {
++                        time: audio.currentTime || 0,
++                        is_playing: isPlaying
++                    }
++                };
++                ws.send(JSON.stringify(state));
++            } catch (e) {
++                console.error('发送状态失败:', e);
++            }
++        }
++        
+         function showMusicMode(data) {
+             if (currentMode !== 'music') {
+                 switchToMusicMode(data);
+             } else {
++                // 如果已经有音乐在播放，检查是否需要切换
++                if (currentTrack && data.track && currentTrack.url !== data.track.url) {
++                    // 曲目变了，重新加载
++                    changeTrack(data);
++                } else {
++                    // 只是状态更新
++                }
+                 updateMusicDisplay(data);
+             }
+         }
+@@ -396,6 +439,9 @@
+         function updateMusicDisplay(data) {
+             const track = data.track;
+             const shouldPlay = data.is_playing;
++            if (shouldPlay === undefined && isPlaying) {
++                shouldPlay = true;
++            }
+             const currentTime = data.current_time;
+             const volume = data.volume;
+             
+@@ -403,6 +449,7 @@
+                 // 保存当前曲目
+                 currentTrack = track;
+                 
++                console.log('更新音乐显示:', track.title, '播放:', shouldPlay, '时间:', currentTime);
+                 // 更新封面和背景
+                 const coverUrl = track.cover_url || '/uploads/covers/default-cover.jpg';
+                 coverImage.src = coverUrl;
+@@ -413,15 +460,13 @@
+                 trackArtist.textContent = track.artist || '未知艺术家';
+                 
+                 // 检查是否需要切换歌曲
+-                const needSwitch = !audio.src || audio.src !== track.url;
+-                
+-                if (needSwitch) {
++                if (!audio.src || audio.src !== track.url) {
+                     // 暂停当前播放
+                     pause();
+                     
+                     // 切换音频源
+                     audio.src = track.url;
+-                    
++                    console.log('设置音频源:', track.url);
+                     // 重置进度
+                     progressFilled.style.width = '0%';
+                     currentTimeDisplay.textContent = '0:00';
+@@ -432,27 +477,36 @@
+                 } else {
+                     clearLyrics();
+                 }
+-            }
+-            
++                
+                 // 设置播放状态
+                 if (shouldPlay) {
+                     if (audioEnabled) {
++                        console.log('开始播放');
+                         play();
+                     } else if (!audioEnableOverlay.style.display || audioEnableOverlay.style.display === 'none') {
+                         audioEnableOverlay.style.display = 'flex';
+                     }
+                 } else {
++                    console.log('暂停播放');
+                     pause();
+                 }
+                 
+                 // 设置时间
+-                if (currentTime !== undefined && needSwitch) {
+-                    setTimeout(() => {
+-                        seek(currentTime);
+-                    }, 100);
++                if (currentTime !== undefined) {
++                    // 只有在时间差异较大时才跳转（避免频繁微调）
++                    const timeDiff = Math.abs(audio.currentTime - currentTime);
++                    if (timeDiff > 1) {
++                        console.log('跳转到时间:', currentTime);
++                        seek(currentTime);
++                    }
+                 }
+                 
+                 // 设置音量
+                 if (volume !== undefined) {
++                    setVolume(volume / 100);
++                }
++            } else {
++                // 如果没有曲目数据，清空显示
++                clearMusicDisplay();
+                 setVolume(volume / 100);
+             }
+         }
+@@ -505,7 +559,7 @@
+             if (!audioEnabled) {
+                 audioEnableOverlay.style.display = 'flex';
+                 return;
+-            }
++        }
+             
+             play();
+             
+@@ -514,7 +568,7 @@
+             }
+         }
+         
+-        // 暂停音乐（来自服务器命令）
++        // 暂停音乐（来自服务器命令）
+         function pauseMusic() {
+             if (currentMode === 'music') {
+                 pause();
+@@ -537,6 +591,18 @@
+                 setVolume(data.volume / 100);
+             }
+         }
++        
++        // 清空音乐显示
++        function clearMusicDisplay() {
++            coverImage.src = '/uploads/covers/default-cover.jpg';
++            backgroundOverlay.style.backgroundImage = '';
++            trackTitle.textContent = '等待音乐';
++            trackArtist.textContent = '未知艺术家';
++            clearLyrics();
++            audio.src = '';
++            progressFilled.style.width = '0%';
++            currentTimeDisplay.textContent = '0:00';
++            durationDisplay.textContent = '0:00';
++        }
+         
+         // 初始化歌词显示
+@@ -814,6 +880,11 @@
+                 
+         // 开始更新循环
+         function startUpdateInterval() {
++            // 清除现有的定时器
++            if (updateInterval) {
++                clearInterval(updateInterval);
++                updateInterval = null;
++            }
+             
+             updateInterval = setInterval(() => {
+                 if (audio.duration) {
