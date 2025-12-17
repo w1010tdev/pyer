@@ -217,5 +217,43 @@ class PersistenceManager:
             except Exception as e:
                 logger.error(f"备份幻灯片数据库失败: {e}")
 
+    def repair_music_durations(self):
+        """修复音乐文件的时长信息"""
+        repaired_count = 0
+        
+        for track in self.music_database:
+            try:
+                url = track.get('url', '')
+                if not url:
+                    continue
+                
+                # 获取文件路径
+                if url.startswith('/uploads/music/'):
+                    filename = url.split('/')[-1]
+                    file_path = UPLOAD_FOLDER / 'music' / filename
+                    
+                    if file_path.exists():
+                        # 重新获取时长
+                        from server import get_audio_duration
+                        import asyncio
+                        
+                        # 注意：get_audio_duration是async函数，需要特殊处理
+                        duration = asyncio.run(get_audio_duration(file_path))
+                        
+                        if duration > 0 and duration != track.get('duration', 0):
+                            old_duration = track.get('duration', 0)
+                            track['duration'] = duration
+                            repaired_count += 1
+                            logger.info(f"修复音乐时长: {track.get('title', '未知')} - {old_duration}s -> {duration}s")
+                
+            except Exception as e:
+                logger.error(f"修复音乐时长失败 {track.get('id', '未知')}: {e}")
+        
+        if repaired_count > 0:
+            self.save_database(self.music_db_file, self.music_database)
+        
+        logger.info(f"已修复 {repaired_count} 个音乐的时长信息")
+        return repaired_count
+
 # 创建全局持久化管理器实例
 persistence_manager = PersistenceManager()
