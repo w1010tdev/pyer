@@ -650,9 +650,9 @@
                             <button class="control-btn" @click="prevTrack" :disabled="!currentTrack">
                                 <i class="fas fa-step-backward"></i> 上一首
                             </button>
-                            <button class="control-btn" @click="playMusic" :disabled="!currentTrack || isPlaying">
+                            <!-- <button class="control-btn" @click="playMusic" :disabled="!currentTrack || isPlaying">
                                 <i class="fas fa-play"></i> 播放
-                            </button>
+                            </button> -->
                             <button class="control-btn" @click="pauseMusic" :disabled="!currentTrack || !isPlaying">
                                 <i class="fas fa-pause"></i> 暂停
                             </button>
@@ -661,7 +661,7 @@
                             </button>
                         </div>
 
-                        <div class="progress-section">
+                        <!-- <div class="progress-section">
                             <div class="time-display">
                                 <span>{{ formatTime(currentTime) }}</span>
                                 <span>{{ formatTime(currentTrack?.duration || 0) }}</span>
@@ -669,7 +669,7 @@
                             <div class="progress-bar" @click="seekMusic">
                                 <div class="progress-fill" :style="{width: progressPercent + '%'}"></div>
                             </div>
-                        </div>
+                        </div> -->
 
                         <div class="volume-control">
                             <i class="fas fa-volume-up"></i>
