@@ -264,7 +264,6 @@
             scrollbar-width: none;
             -ms-overflow-style: none;
             position: relative;
-            padding: 80px 20px;
         }
         
         .lyric-scroll-container::-webkit-scrollbar {
@@ -274,9 +273,9 @@
         .lyric-viewport {
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
             min-height: min-content;
+            width: 100%;
         }
         
         .lyric-lines {
@@ -364,17 +363,7 @@
                 transparent 100%);
         }
         
-        .lyric-center-guide {
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 50%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-            z-index: 0;
-            pointer-events: none;
-            transform: translateY(-50%);
-        }
+
         
         .footer {
             text-align: center;
@@ -683,11 +672,6 @@
         <div class="music-container" id="musicContainer">
             <div class="background-overlay" id="backgroundOverlay"></div>
             <div class="content">
-                <div class="header">
-                    <h1>元旦晚会音乐播放</h1>
-                    <p>班级元旦晚会 · 音乐欣赏</p>
-                </div>
-                
                 <div class="music-content">
                     <div class="album-section">
                         <div class="album-cover" id="albumCover">
