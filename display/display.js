@@ -614,7 +614,6 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="lyric-fade-top"></div>
             <div class="lyric-fade-bottom"></div>
-            <div class="lyric-center-guide"></div>
         `;
         
         // 初始化歌词容器高度
